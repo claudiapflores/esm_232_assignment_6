@@ -8,7 +8,7 @@
 #' @return forest growth rate
 #'
 
-forest_growth = function(time, parms) {
+forest_growth = function(time, C, parms) {
   
   # compute rate of change of forest size
   dforest_growth = C * exp(parms$r*time)
