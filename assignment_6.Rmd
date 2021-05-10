@@ -1,0 +1,29 @@
+---
+title: "Assignment 6"
+author: "Claudia Flores, Bret Folger, Julia Dagum"
+date: "5/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(deSolve)
+library(sensitivity)
+```
+
+```{r}
+## Source in the function
+source("./R/dforest_growth.R")
+
+
+## Parameters
+
+C_inital = 10 # kg/C
+cc_threshold = 50 # kg/C
+K = 250 # kg C
+r = 0.01
+g = 2 # kg/year
+```
+
