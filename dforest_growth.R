@@ -5,15 +5,16 @@
 #' @param K carrying capacity (kg C)
 #' @param g linear growth rate after canopy closure (kg/year)
 #' @param C size of forest (kg C)
-#' @return 
+#' @return forest growth rate
 #'
 
 forest_growth = function(time, parms) {
   
   # compute rate of change of forest size
-  dforest_growth = parms$
+  dforest_growth = parms$r * C
   
   # set rate of change to 0 if C is greater than carrying capacity (K)
   dforest_growth = ifelse(C = parms$K, 0, dforest_growth)
+  dforest_growth = ifelse(C > parms$cc_threshold, g, dforest_growth)
   return(list(dforest_growth))
 }
