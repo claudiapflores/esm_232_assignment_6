@@ -14,7 +14,7 @@ forest_growth = function(time, parms) {
   dforest_growth = C * exp(parms$r*time)
   
   # set rate of change to 0 if C is greater than carrying capacity (K)
-  dforest_growth = ifelse(C = parms$K, 0, ifelse(C > parms$cc_threshold, g, dforest_growth))
+  dforest_growth = ifelse(C = parms$K, 0, ifelse(C > parms$cc_threshold, parms$g, dforest_growth))
   return(list(dforest_growth))
 }
 
