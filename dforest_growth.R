@@ -6,7 +6,7 @@
 #' @param g linear growth rate after canopy closure (kg/year)
 #' @param C size of forest (kg C)
 #' @return forest growth rate
-#'
+#' @author Claudia Flores, Bret Folger, and Julia Dagum
 
 forest_growth = function(time, C, parms) {
   
