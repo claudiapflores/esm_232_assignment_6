@@ -14,7 +14,7 @@ forest_growth = function(time, C, parms) {
   dforest_growth = C * exp(parms$r*time)
   
   # set rate of change to 0 if C is greater than carrying capacity (K) or for forest where carbon is  at or above the threshold canopy closure then set to g
-  dforest_growth = ifelse(C = parms$K, 0, ifelse(C > parms$cc_threshold, parms$g, dforest_growth))
+  dforest_growth = ifelse(C = parms$K, 0, ifelse(C >= parms$cc_threshold, parms$g, dforest_growth))
   return(list(dforest_growth))
 }
 
