@@ -12,6 +12,31 @@ library(tidyverse)
 library(deSolve)
 library(sensitivity)
 ```
+```{r}
+source("./R/dforest_growth.R")
+
+
+## Parameters
+
+# Given
+C_initial = 10 # kg/C
+cc_threshold = 50 # kg/C
+K = 250 # kg C
+r = 0.01
+g = 2 # kg/year
+time = seq(from=1, to=300, by = 1) #years
+
+# set parms and use ODE
+parms = list(r = r, K = K, g = g, cc_threshold = cc_threshold)
+result = ode(y=C_initial, times = time, func = forest_growth, parms = parms )
+
+colnames(result)=c("times","C")
+# turn it into a data frame
+result = as.data.frame(result)
+# plot it
+ggplot(result, aes(times, C))+geom_point()
+
+```
 
 ```{r}
 ## Source in the function
