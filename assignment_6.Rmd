@@ -20,10 +20,26 @@ source("./R/dforest_growth.R")
 
 ## Parameters
 
-C_inital = 10 # kg/C
+# Given
+C_initial = 10 # kg/C
 cc_threshold = 50 # kg/C
-K = 250 # kg C
-r = 0.01
-g = 2 # kg/year
+#K = 250 # kg C
+#r = 0.01
+#g = 2 # kg/year
+#time = 300 years
+
+# Set parameters
+time = 300
+K = rnorm(mean = 250, sd = 250 * 10, n = time)
+r = rnorm(mean = 0.01, sd = 0.01 * 10 , n = time)
+g = rnorm(mean = 2, sd = 2 * 10 , n = time)
+X1 = cbind.data.frame(r = r, K = K, g = g) # creates a data frame
+
+# repeat to get our second set of sample parameters (required by function)
+time = 300
+K = rnorm(mean = 250, sd = 250 * 10, n = time)
+r = rnorm(mean = 0.01, sd = 0.01 * 10 , n = time)
+g = rnorm(mean = 2, sd = 2 * 10 , n = time)
+X2 = cbind.data.frame(r = r, K = K, g = g) # creates a data frame
 ```
 
