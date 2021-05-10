@@ -12,6 +12,7 @@ library(tidyverse)
 library(deSolve)
 library(sensitivity)
 ```
+Part 2
 ```{r}
 source("./R/dforest_growth.R")
 
@@ -38,6 +39,7 @@ ggplot(result, aes(times, C))+geom_point()
 
 ```
 
+Part 3
 ```{r}
 ## Source in the function
 source("./R/dforest_growth.R")
@@ -54,18 +56,19 @@ cc_threshold = 50 # kg/C
 #time = 300 years
 
 # Set parameters
-time = 300
-K = rnorm(mean = 250, sd = 250 * 10, n = time)
-r = rnorm(mean = 0.01, sd = 0.01 * 10 , n = time)
-g = rnorm(mean = 2, sd = 2 * 10 , n = time)
-X1 = cbind.data.frame(r = r, K = K, g = g) # creates a data frame
+np = 100
+K = rnorm(mean = 250, sd = 25, n = np)
+r = rnorm(mean = 0.01, sd = 0.001 , n = np)
+g = rnorm(mean = 2, sd = 0.02 , n = np)
+cc_threshold = rnorm(mean = 50, sd = 5 , n = np)
+X1 = cbind.data.frame(r = r, K = K, g = g, cc_threshold = cc_threshold) # creates a data frame
 
 # Repeat to get our second set of sample parameters (required by sobel function)
-time = 300
-K = rnorm(mean = 250, sd = 250 * 10, n = time)
-r = rnorm(mean = 0.01, sd = 0.01 * 10 , n = time)
-g = rnorm(mean = 2, sd = 2 * 10 , n = time)
-X2 = cbind.data.frame(r = r, K = K, g = g) # creates a data frame
+K = rnorm(mean = 250, sd = 25, n = np)
+r = rnorm(mean = 0.01, sd = 0.001 , n = np)
+g = rnorm(mean = 2, sd = 0.02 , n = np)
+cc_threshold = rnorm(mean = 50, sd = 5 , n = np)
+X2 = cbind.data.frame(r = r, K = K, g = g, cc_threshold = cc_threshold) # creates a data frame
 ```
 
 ```{r}
@@ -73,5 +76,86 @@ X2 = cbind.data.frame(r = r, K = K, g = g) # creates a data frame
 
 # create sobel object and get both sets of parameters to run the model
 sens_C = soboljansen(model = NULL,X1, X2, nboot = 300) 
+
+head(sens_C$X)
+
+simtimes = seq(from=1, to=300, by = 1)
+parms = list(r=sens_C$X$r[1], K=sens_C$X$K[1], g=sens_C$X$g[1], cc_threshold = sens_C$X$cc_threshold[1])
+result = ode(y=C_initial, times=simtimes, func=forest_growth, parms=parms)
+
+head(result)
+colnames(result)=c("time","C")
+# turn it into a data frame
+result = as.data.frame(result)
+#ggplot(result, aes(time, C))+geom_boxplot()
+
+# extra our metrics of interest  from this
+# maximum population it gets to
+maxcarb = max(result$C)
+maxcarb
+
+meancarb = mean(result$C)
+meancarb
+
+# years required to get to the maximum poputation
+# which.max will tell us when max population occur
+idx = which.max(result$C)
+# turn this index into a year (might be the same if time step in 1 but just in case it isn't)
+maxyear = result$time[idx]
+maxyear
 ```
+
+```{r}
+# turn computing our metrics into a function
+
+compute_metrics = function(result) {
+  maxcarb = max(result$C)
+  meancarb = mean(result$C)
+idx = which.max(result$C)
+maxyear = result$time[idx]
+return(list(maxcarb=maxcarb, meancarb=meancarb, maxyear=maxyear))}
+
+# try it on our first parameter set
+compute_metrics(result)
+
+# great but we need to apply the ode and this function for all of our parameters
+
+
+
+# define a wrapper function to do everything we need - run solver and compute metrics - and send back results for each parameter
+
+c_wrapper = function(r, K, C_initial, g, cc_threshold, simtimes, func) {
+    parms = list(r=r, K=K, g=g, cc_threshold=cc_threshold)
+    result = ode(y=C_initial, times=simtimes, func=forest_growth, parms=parms) 
+    colnames(result)=c("time","C")
+  # get metrics
+  metrics=compute_metrics(as.data.frame(result))
+  return(metrics)
+}
+
+# now use pmap as we did before
+
+allresults = sens_C$X %>% pmap(c_wrapper, C_initial=C_initial, simtimes=simtimes, func=forest_growth)
+
+# extract out results from pmap into a data frame
+allres = allresults %>% map_dfr(`[`,c("maxcarb","maxyear", "meancarb"))
+
+
+# create boxplots
+tmp = allres %>% gather(key="metric", value="value")
+ggplot(tmp, aes(metric, value, col=metric))+geom_boxplot()
+```
+
+```{r}
+# sobol can only handle one output at a time  - so we will need to do them separately
+
+sens_C_maxcarb = sensitivity::tell(sens_C,allres$maxcarb)
+
+# first-order indices (main effect without co-variance)
+sens_C_maxcarb$S
+
+# total sensitivity index -note that this partitions the output variance - so values sum to 1
+sens_C_maxcarb$T
+
+plot(sens_C_maxcarb)
 
